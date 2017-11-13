@@ -1,0 +1,191 @@
+<scene export_time="1510553669.8914075" exported_by="gabri" formatVersion="1.0.1" previous_export_time="1510553621.3717957" >
+  <nodes >
+    <node name="Lamp.004" >
+      <position x="-8.316544" y="3.258755" z="8.415981" />
+      <rotation qw="0.570947" qx="0.169076" qy="0.755880" qz="-0.272171" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp.004" powerScale="1.0" shadow="true" type="point" >
+        <position x="-8.316544" y="3.258755" z="8.415981" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+        <colourShadow b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Lamp.003" >
+      <position x="0.003093" y="-1.055625" z="9.156203" />
+      <rotation qw="0.570947" qx="0.169076" qy="0.755880" qz="-0.272171" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp.003" powerScale="1.0" shadow="true" type="point" >
+        <position x="0.003093" y="-1.055625" z="9.156203" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+        <colourShadow b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Lamp.002" >
+      <position x="5.680284" y="0.264697" z="-4.204946" />
+      <rotation qw="0.570947" qx="0.169076" qy="0.755880" qz="-0.272171" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp.002" powerScale="1.0" shadow="true" type="point" >
+        <position x="5.680284" y="0.264697" z="-4.204946" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+        <colourShadow b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Lamp.001" >
+      <position x="-0.836319" y="-3.696273" z="-1.104311" />
+      <rotation qw="0.570947" qx="0.169076" qy="0.755880" qz="-0.272171" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp.001" powerScale="1.0" shadow="true" type="point" >
+        <position x="-0.836319" y="-3.696273" z="-1.104311" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+        <colourShadow b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Point.001" >
+      <position x="5.585496" y="-2.086895" z="12.011993" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Point.001" powerScale="2.1599998474121094" type="point" >
+        <position x="5.585496" y="-2.086895" z="12.011993" />
+        <lightAttenuation constant="1.0" linear="0.04" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Point" >
+      <position x="-3.465254" y="-2.086895" z="12.011993" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Point" powerScale="2.1599998474121094" type="point" >
+        <position x="-3.465254" y="-2.086895" z="12.011993" />
+        <lightAttenuation constant="1.0" linear="0.04" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Sun" >
+      <position x="11.295765" y="-0.750365" z="-13.600281" />
+      <rotation qw="0.258980" qx="0.159272" qy="0.811481" qz="-0.499059" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Sun" powerScale="1.0" type="directional" >
+        <position x="11.295765" y="-0.750365" z="-13.600281" />
+        <lightAttenuation constant="1.0" linear="0.04" quadratic="0.0" range="5000" />
+        <direction x="0.0" y="-1.0" z="0.0" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Armamature" >
+      <position x="4.094226" y="0.813738" z="-1.098310" />
+      <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+      <scale x="0.299678" y="0.299678" z="0.299678" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <node name="Dragon 2" >
+        <position x="0.006480" y="1.863847" z="1.797276" />
+        <rotation qw="1.000000" qx="0.000000" qy="0.000000" qz="-0.000000" />
+        <scale x="0.023376" y="0.023376" z="0.023376" />
+        <game >
+          <sensors />
+          <actuators />
+        </game>
+        <entity actor="False" anisotropic_friction="False" damping_rot="0.1589999943971634" damping_trans="0.02539999969303608" friction_x="1.0" friction_y="1.0" friction_z="1.0" ghost="False" inertia_tensor="0.4000000059604645" lock_rot_x="False" lock_rot_y="False" lock_rot_z="False" lock_trans_x="False" lock_trans_y="False" lock_trans_z="False" mass="1.0" mass_radius="1.0" meshFile="Cube.001.mesh" name="Cube.001" physics_type="STATIC" velocity_max="0.0" velocity_min="0.0" >
+          <user_data name="ms3d" type="IDPropertyGroup" value='&lt;bpy id prop: owner="MECube.001", name="ms3d", address=0x000001BEBB3710D8&gt;' />
+        </entity>
+      </node>
+    </node>
+    <node name="Lamp" >
+      <position x="0.689142" y="5.226489" z="-0.054410" />
+      <rotation qw="0.570947" qx="0.169076" qy="0.755880" qz="-0.272171" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <light name="Lamp" powerScale="1.0" shadow="true" type="point" >
+        <position x="0.689142" y="5.226489" z="-0.054410" />
+        <lightAttenuation constant="1.0" linear="0.03333335240683057" quadratic="0.0" range="5000" />
+        <colourDiffuse b="1.0" g="1.0" r="1.0" />
+        <colourSpecular b="1.0" g="1.0" r="1.0" />
+        <colourShadow b="1.0" g="1.0" r="1.0" />
+      </light>
+    </node>
+    <node name="Camera" >
+      <position x="9.652647" y="6.815610" z="7.779975" />
+      <rotation qw="0.780483" qx="0.483536" qy="0.336872" qz="-0.208704" />
+      <scale x="1.000000" y="1.000000" z="1.000000" />
+      <game >
+        <sensors />
+        <actuators />
+      </game>
+      <camera fov="0.5033799435163735" name="Camera" projectionType="perspective" >
+        <clipping far="100.0" farPlaneDist="100.0" near="0.10000000149011612" nearPlaneDist="0.10000000149011612" />
+      </camera>
+    </node>
+  </nodes>
+  <externals >
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.004.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.010.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.011.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.006.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.002.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.material" />
+    </item>
+    <item type="material" >
+      <file name="D:\gabri\Dragon Texture\Copy\Ogre\Material.009.material" />
+    </item>
+  </externals>
+  <environment >
+    <colourDiffuse b="0.05087608844041824" g="0.05087608844041824" r="0.05087608844041824" />
+    <colourBackground b="0.05087608844041824" g="0.05087608844041824" r="0.05087608844041824" />
+    <colourAmbient b="0.0" g="0.0" r="0.0" />
+  </environment>
+</scene>
