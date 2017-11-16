@@ -1,110 +1,405 @@
 package jme3test.helloworld;
 
+import com.jme3.animation.AnimChannel;
+import com.jme3.animation.AnimControl;
+import com.jme3.animation.AnimEventListener;
+import com.jme3.animation.Animation;
+import com.jme3.animation.LoopMode;
+import com.jme3.animation.SpatialTrack;
 import com.jme3.app.SimpleApplication;
-import com.jme3.material.Material;
-import com.jme3.math.Vector3f;
-import com.jme3.scene.Geometry;
-import com.jme3.scene.shape.Box;
-import com.jme3.math.ColorRGBA;
+import com.jme3.asset.plugins.ZipLocator;
+import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.PhysicsSpace;
+import com.jme3.bullet.collision.PhysicsCollisionEvent;
+import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
+import com.jme3.bullet.collision.shapes.CollisionShape;
+import com.jme3.bullet.collision.shapes.SphereCollisionShape;
+import com.jme3.bullet.control.CharacterControl;
+import com.jme3.bullet.control.RigidBodyControl;
+import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.font.BitmapText;
+import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
-import com.jme3.input.MouseInput;
 import com.jme3.input.controls.ActionListener;
-import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
-import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
+import com.jme3.material.Material;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Quaternion;
+import com.jme3.math.Vector2f;
+import com.jme3.math.Vector3f;
+import com.jme3.renderer.queue.RenderQueue;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.terrain.geomipmap.TerrainGrid;
+import com.jme3.terrain.geomipmap.TerrainGridLodControl;
+import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.terrain.geomipmap.grid.ImageTileLoader;
+import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
+import com.jme3.terrain.heightmap.Namer;
 import com.jme3.texture.Texture;
+import java.util.HashMap;
 
-/** Sample 5 - how to map keys and mousebuttons to actions */
-public class HelloInput extends SimpleApplication {
-
+/** Sample 7 - how to load an OgreXML model and play an animation,
+ * using channels, a controller, and an AnimEventListener. */
+public class HelloAnimation extends SimpleApplication
+  implements AnimEventListener, ActionListener, PhysicsCollisionListener {
+  
+  private AnimChannel channel;
+  private AnimControl control;
+  private AnimChannel animationChannel;
+  private BulletAppState bulletAppState;
+  private Spatial sceneModel;
+  private ChaseCamera chaseCam;
+  private RigidBodyControl landscape;
+  private Vector3f walkDirection = new Vector3f();
+  Node player;
+  private boolean left = false, right = false, up = false, down = false;
+  private boolean walking = true;
+  private CharacterControl character;
+  private Vector3f camDir = new Vector3f();
+  private Vector3f camLeft = new Vector3f();
+  private float airTime = 0;
+   Box brick;
+    float bLength = 0.8f;
+    float bWidth = 0.4f;
+    float bHeight = 0.4f;
+  private Sphere bullet;  
+  private Material matBullet;
+  private SphereCollisionShape bulletCollisionShape;
+  private Material mat_terrain;
+    private TerrainGrid terrain;
+    private float grassScale = 64;
+    private float dirtScale = 16;
+  
   public static void main(String[] args) {
-    HelloInput app = new HelloInput();
+    HelloAnimation app = new HelloAnimation();
     app.start();
   }
-  protected Geometry test;
-  protected Spatial player;
-  Boolean isRunning=true;
 
   @Override
   public void simpleInitApp() {
-    Box b = new Box(1, 1, 1);
-    test = new Geometry("Player", b);
-    Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
-    mat.setColor("Color", ColorRGBA.Blue);
-    test.setMaterial(mat);
-    player = assetManager.loadModel("Models/dragon2/dragon2.j3o");
-    player.scale(1.0f, 1.0f, 1.0f);
-    player.rotate(0.0f, -3.0f, 0.0f);
-    
-    Material mat_brick2 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
-    Texture skin = assetManager.loadTexture("Textures/dipo.jpg");
+    bulletAppState = new BulletAppState();
+    stateManager.attach(bulletAppState);
+    //bulletAppState.setDebugEnabled(true);
    
-    mat_brick2.setTexture("DiffuseMap",skin);
-    mat_brick2.setBoolean("UseMaterialColors", true);
-    mat_brick2.setColor("Diffuse", ColorRGBA.Yellow); //minimum material color
-    mat_brick2.setColor("Specular", ColorRGBA.White); //shininess
-    mat_brick2.setFloat("Shininess", 64f);
+    viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+    //flyCam.setMoveSpeed(100);
+
+    assetManager.registerLocator("town.zip", ZipLocator.class);
+    sceneModel = assetManager.loadModel("main.scene");
+    sceneModel.setLocalScale(2f);
+   
     
-         
-    player.setMaterial(mat_brick2);
-    player.setLocalTranslation(0.0f, -5.0f, -2.0f);
+    player = (Node) assetManager.loadModel("Models/animasi/animasi.j3o");
+    player.setLocalScale(5f);
+    player.setLocalTranslation(-20f, 0, 0);
+    CapsuleCollisionShape capsule = new CapsuleCollisionShape(3f, 4f);
+    character = new CharacterControl(capsule, 0.05f);
+    
+    character.setJumpSpeed(20f);
+    player.addControl(character);
+    character.setPhysicsLocation(new Vector3f(-20f, 2.3f, 0));
     rootNode.attachChild(player);
     
-    DirectionalLight sun = new DirectionalLight();
-    sun.setDirection(new Vector3f(-0.1f, -0.7f, -1.0f));
-    rootNode.addLight(sun);
+    CollisionShape sceneShape = CollisionShapeFactory.createMeshShape(sceneModel);
+    landscape = new RigidBodyControl(sceneShape, 0);
+    sceneModel.addControl(landscape);
     
-    initKeys(); // load my custom keybinding
+    control = player.getChild("Dragon 2").getControl(AnimControl.class);
+    control.addListener(this);
+    channel = control.createChannel();
+    channel.setAnim("Run");
+    animationChannel = control.createChannel();
+    getPhysicsSpace().add(character);
+    
+    rootNode.attachChild(sceneModel);
+    bulletAppState.getPhysicsSpace().add(landscape);
+    bulletAppState.getPhysicsSpace().add(player);
+    
+    character.setJumpSpeed(12);
+    character.setFallSpeed(40);
+    character.setGravity(20);
+    
+       this.flyCam.setMoveSpeed(100f);
+        initMaterial();
+        initTerrain();
+   //    this.getCamera().setLocation(new Vector3f(0, 200, 0));
+   //    this.getCamera().lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
+   //     this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
+   //    initLight();
+
+    setupCamera();
+    setUpLight();
+    initKeys();
+    //createWall();
+    //setupChaseCamera();
+    
+     // Create model
+        
+//        Box box = new Box(3, 3, 3);
+//        Geometry geom = new Geometry("box", box);
+//        geom.setMaterial(assetManager.loadMaterial("Textures/Terrain/BrickWall/BrickWall.j3m"));
+        Node model = new Node("model");
+//        model.attachChild(geom);
+
+        Box child = new Box(3, 3, 3);
+        Geometry childGeom = new Geometry("box", child);
+        childGeom.setMaterial(assetManager.loadMaterial("Textures/Terrain/BrickWall/BrickWall.j3m"));
+        Node childModel = new Node("childmodel");
+        childModel.setLocalTranslation(0, 3, (float) (Math.random()*10+90));
+        childModel.attachChild(childGeom);
+        model.attachChild(childModel);
+        
+        model.attachChild(terrain);
+        
+        //animation parameters
+        float animTime = 5;
+        int fps = 25;
+        float totalXLength = 40;
+        
+        //calculating frames
+        int totalFrames = (int) (fps * animTime);
+        float dT = animTime / totalFrames, t = 0;
+        float dX = totalXLength / totalFrames, x = 0;
+        float[] times = new float[totalFrames];
+        Vector3f[] translations = new Vector3f[totalFrames];
+        Quaternion[] rotations = new Quaternion[totalFrames];
+        Vector3f[] scales = new Vector3f[totalFrames];
+		for (int i = 0; i < totalFrames; ++i) {
+        	times[i] = t;
+        	t += dT;
+        	translations[i] = new Vector3f(0, 0, -x);
+        	x += 5*dX;
+        	rotations[i] = Quaternion.IDENTITY;
+        	scales[i] = Vector3f.UNIT_XYZ;
+        }
+        SpatialTrack spatialTrack = new SpatialTrack(times, translations, rotations, scales);
+        
+        //creating the animation
+        Animation spatialAnimation = new Animation("anim", animTime);
+        spatialAnimation.setTracks(new SpatialTrack[] { spatialTrack });
+        
+        //create spatial animation control
+        AnimControl control = new AnimControl();
+        HashMap<String, Animation> animations = new HashMap<String, Animation>();
+        animations.put("anim", spatialAnimation);
+        control.setAnimations(animations);
+        model.addControl(control);
+
+        rootNode.attachChild(model);
+        
+        //run animation
+        control.createChannel().setAnim("anim");
+            
     
   }
   
-  public void simpleUpdate(float tpf) {
-        // make the player rotate:
-        //player.move(0, 0, -0.5f*tpf);
+  private void setUpLight() {
+    // We add light so we see the scene
+    AmbientLight al = new AmbientLight();
+    al.setColor(ColorRGBA.White.mult(1.3f));
+    rootNode.addLight(al);
+
+    DirectionalLight dl = new DirectionalLight();
+    dl.setColor(ColorRGBA.White);
+    dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
+    rootNode.addLight(dl);
+  }
+
+  public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+    if (walking) {
+      channel.setAnim("Run");
+      channel.setLoopMode(LoopMode.Loop);
+      channel.setSpeed(2.5f);
+    }
+  }
+
+  public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
+    // unused
   }
 
   /** Custom Keybinding: Map named actions to inputs. */
   private void initKeys() {
-    // You can map one or several inputs to one named action
-    inputManager.addMapping("Pause",  new KeyTrigger(KeyInput.KEY_P));
-    inputManager.addMapping("Left",   new KeyTrigger(KeyInput.KEY_J));
-    inputManager.addMapping("Right",  new KeyTrigger(KeyInput.KEY_K));
-    inputManager.addMapping("Rotate", new KeyTrigger(KeyInput.KEY_SPACE),
-                                      new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
-    // Add the names to the action listener.
-    inputManager.addListener(actionListener,"Pause");
-    inputManager.addListener(analogListener,"Left", "Right", "Rotate");
-
+    inputManager.addMapping("CharLeft", new KeyTrigger(KeyInput.KEY_J));
+    inputManager.addMapping("CharRight", new KeyTrigger(KeyInput.KEY_L));
+    inputManager.addMapping("CharForward", new KeyTrigger(KeyInput.KEY_I));
+    inputManager.addMapping("CharBackward", new KeyTrigger(KeyInput.KEY_K));
+    inputManager.addMapping("CharJump", new KeyTrigger(KeyInput.KEY_SPACE));
+    inputManager.addMapping("CharAttack", new KeyTrigger(KeyInput.KEY_B));
+    inputManager.addListener(this, "CharLeft", "CharRight");
+    inputManager.addListener(this, "CharForward", "CharBackward");
+    inputManager.addListener(this, "CharJump", "CharAttack");
   }
   
-
-  private ActionListener actionListener = new ActionListener() {
-    public void onAction(String name, boolean keyPressed, float tpf) {
-      if (name.equals("Pause") && !keyPressed) {
-        isRunning = !isRunning;
-      }
+ 
+    public void onAction (String binding, boolean value, float tpf) {
+      if (binding.equals("CharLeft")) {
+            if (value) {
+                left = true;
+            } else {
+                left = false;
+            }
+        } else if (binding.equals("CharRight")) {
+            if (value) {
+                right = true;
+            } else {
+                right = false;
+            }
+        } else if (binding.equals("CharUp")) {
+            if (value) {
+                up = true;
+            } else {
+                up = false;
+            }
+        } else if (binding.equals("CharDown")) {
+            if (value) {
+                down = true;
+            } else {
+                down = false;
+            }
+        } else if (binding.equals("CharJump")) {
+            character.jump();
+//            channel.setAnim("pull");
+            walking = false;
+            System.out.println(character.getPhysicsLocation());
+        }
     }
-  };
 
-  private AnalogListener analogListener = new AnalogListener() {
-    public void onAnalog(String name, float value, float tpf) {
-      if (isRunning) {
-        if (name.equals("Rotate")) {
-          player.rotate(0, value*speed, 0);
+  
+   public void simpleUpdate(float tpf) {
+//        Vector3f camDir = cam.getDirection().clone();
+//        Vector3f camLeft = cam.getLeft().clone();
+//        camDir.y = 0;
+//        camLeft.y = 0;
+//        camDir.normalizeLocal();
+//        camLeft.normalizeLocal();
+//        walkDirection.set(0, 0, 0);
+//
+//        if (left)  walkDirection.addLocal(camLeft);
+//        if (right) walkDirection.addLocal(camLeft.negate());
+//        if (up) walkDirection.addLocal(camDir);
+//        if (down) walkDirection.addLocal(camDir.negate());
+//
+//        if (!character.onGround()) { // use !character.isOnGround() if the character is a BetterCharacterControl type.
+//        airTime += tpf;
+//        } else {
+//        airTime = 0;
+//        }
+//
+//  if (walkDirection.lengthSquared() == 0) { //Use lengthSquared() (No need for an extra sqrt())
+//      if (!"stand".equals(animationChannel.getAnimationName())) {
+//        animationChannel.setAnim("stand", 1f);
+//      }
+//  } else {
+//      character.setViewDirection(walkDirection);
+//      if (airTime > .3f) {
+//        if (!"stand".equals(animationChannel.getAnimationName())) {
+//          animationChannel.setAnim("stand");
+//        }
+//        }    else if (!"Walk".equals(animationChannel.getAnimationName())) {
+//             animationChannel.setAnim("Walk", 0.7f);
+//            }
+//        }
+//
+//        walkDirection.multLocal(25f).multLocal(tpf);// The use of the first multLocal here is to control the rate of movement multiplier for character walk speed. The second one is to make sure the character walks the same speed no matter what the frame rate is.
+//        character.setWalkDirection(walkDirection); // T
+        if (left) sceneModel.move (-7*tpf, 0, 0);
+        if (right) sceneModel.move (7*tpf, 0, 0);
+        if (left) terrain.move (-7*tpf, 0, 0);
+        if (right) terrain.move (7*tpf, 0, 0);
+        
+        sceneModel.move(0, 0, -20*tpf);
+        //terrain.move(0, 0, -20*tpf);
+       // if (this.terrain.getLocalTranslation().z < -30)
+        //{
+        //    this.terrain.setLocalTranslation(0, -25, 0);
+        //}
+        
+        if (character.getPhysicsLocation().y < 5.440){
+        walking = true;
         }
-        if (name.equals("Right")) {
-          Vector3f v = player.getLocalTranslation();
-          player.setLocalTranslation(v.x + value*speed, v.y, v.z);
-        }
-        if (name.equals("Left")) {
-          Vector3f v = player.getLocalTranslation();
-          player.setLocalTranslation(v.x - value*speed, v.y, v.z);
-        }
-      } else {
-        System.out.println("Press P to unpause.");
-      }
+        
     }
-  };
+   
+    private PhysicsSpace getPhysicsSpace() {
+        return bulletAppState.getPhysicsSpace();
+    }
+   
+    private void setupChaseCamera() {
+        flyCam.setEnabled(false);
+        chaseCam = new ChaseCamera(cam, player, inputManager);
+        chaseCam.setSmoothMotion(true);
+    }
+   
+    private void setupCamera(){
+        cam.setLocation(new Vector3f(-0.55333f, 26.017147f, -26.443226f));
+        cam.setRotation(new Quaternion(0.22046068f, -0.019695744f, 0.0044526435f, 0.9751868f));
+
+    }
+
+    @Override
+    public void collision(PhysicsCollisionEvent event) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+    
+       public void initMaterial() {
+        // TERRAIN TEXTURE material
+        this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
+
+
+        // GRASS texture
+        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
+        grass.setWrap(Texture.WrapMode.Repeat);
+        this.mat_terrain.setTexture("region1ColorMap", grass);
+        this.mat_terrain.setVector3("region1", new Vector3f(-10, 0, this.grassScale));
+
+        // DIRT texture
+        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
+        dirt.setWrap(Texture.WrapMode.Repeat);
+        this.mat_terrain.setTexture("region2ColorMap", dirt);
+        this.mat_terrain.setVector3("region2", new Vector3f(0, 900, this.dirtScale));
+
+        // ROCK texture
+        //Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
+        Texture building = this.assetManager.loadTexture("Textures/Terrain/splat/mountains512.png");
+        building.setWrap(Texture.WrapMode.Repeat);
+        
+        this.mat_terrain.setTexture("slopeColorMap", building);
+        this.mat_terrain.setFloat("slopeTileFactor", 32);
+
+        this.mat_terrain.setFloat("terrainSize", 513);
+    }
+
+    private void initLight() {
+        DirectionalLight light = new DirectionalLight();
+        light.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
+        rootNode.addLight(light);
+    }
+
+    private void initTerrain() {
+        this.terrain = new TerrainGrid("terrain", 65, 257, new ImageTileLoader(assetManager, new Namer() {
+
+            public String getName(int x, int y) {
+               //return "Interface/Scenes/TerrainMountains/terrain_" + x + "_" + y + ".png";
+                return "Textures/heightmap.png";
+            }
+        }));
+
+        this.terrain.setMaterial(mat_terrain);
+        this.terrain.setLocalTranslation(0, 0, -20);
+        this.terrain.setLocalScale(0.2f, 1.5f, 6f);
+        this.rootNode.attachChild(this.terrain);
+
+        TerrainLodControl control = new TerrainGridLodControl(this.terrain, getCamera());
+        control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
+        this.terrain.addControl(control);
+    }
+    
+       
 }
