@@ -5,350 +5,353 @@ import com.jme3.animation.AnimControl;
 import com.jme3.animation.AnimEventListener;
 import com.jme3.animation.Animation;
 import com.jme3.animation.LoopMode;
+import com.jme3.animation.SkeletonControl;
 import com.jme3.animation.SpatialTrack;
 import com.jme3.app.SimpleApplication;
-import com.jme3.asset.plugins.ZipLocator;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.PhysicsSpace;
-import com.jme3.bullet.collision.PhysicsCollisionEvent;
-import com.jme3.bullet.collision.PhysicsCollisionListener;
+import com.jme3.bullet.collision.shapes.BoxCollisionShape;
 import com.jme3.bullet.collision.shapes.CapsuleCollisionShape;
-import com.jme3.bullet.collision.shapes.CollisionShape;
-import com.jme3.bullet.collision.shapes.SphereCollisionShape;
 import com.jme3.bullet.control.CharacterControl;
 import com.jme3.bullet.control.RigidBodyControl;
-import com.jme3.bullet.util.CollisionShapeFactory;
+import com.jme3.font.BitmapFont;
 import com.jme3.font.BitmapText;
-import com.jme3.input.ChaseCamera;
 import com.jme3.input.KeyInput;
 import com.jme3.input.controls.ActionListener;
+import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.light.AmbientLight;
 import com.jme3.light.DirectionalLight;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState;
 import com.jme3.math.ColorRGBA;
 import com.jme3.math.Quaternion;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.queue.RenderQueue;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import com.jme3.scene.Spatial;
 import com.jme3.scene.shape.Box;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.terrain.geomipmap.TerrainGrid;
-import com.jme3.terrain.geomipmap.TerrainGridLodControl;
-import com.jme3.terrain.geomipmap.TerrainLodControl;
-import com.jme3.terrain.geomipmap.grid.ImageTileLoader;
-import com.jme3.terrain.geomipmap.lodcalc.DistanceLodCalculator;
-import com.jme3.terrain.heightmap.Namer;
 import com.jme3.texture.Texture;
+import dipoBarus.oop.CameraGame;
 import java.util.HashMap;
+import java.util.Random;
+//
 
-/** Sample 7 - how to load an OgreXML model and play an animation,
- * using channels, a controller, and an AnimEventListener. */
-public class HelloAnimation extends SimpleApplication
-  implements AnimEventListener, ActionListener, PhysicsCollisionListener {
-  
-  private AnimChannel channel;
-  private AnimControl control;
-  private AnimChannel animationChannel;
-  private BulletAppState bulletAppState;
-  private Spatial sceneModel;
-  private ChaseCamera chaseCam;
-  private RigidBodyControl landscape;
-  private Vector3f walkDirection = new Vector3f();
-  Node player;
-  private boolean left = false, right = false, up = false, down = false;
-  private boolean walking = true;
-  private CharacterControl character;
-  private Vector3f camDir = new Vector3f();
-  private Vector3f camLeft = new Vector3f();
-  private float airTime = 0;
-   Box brick;
-    float bLength = 0.8f;
-    float bWidth = 0.4f;
-    float bHeight = 0.4f;
-  private Sphere bullet;  
-  private Material matBullet;
-  private SphereCollisionShape bulletCollisionShape;
-  private Material mat_terrain;
+/**
+ *
+ * @author Teuku Hashrul NPM : 2016730067
+ */
+public class TestCol extends SimpleApplication implements ActionListener, AnalogListener, AnimEventListener {
+
+    private Geometry chara, obstacle, landscape;
+    
+    private Spatial tank, rocket;
+    
     private TerrainGrid terrain;
-    private float grassScale = 64;
-    private float dirtScale = 16;
-  
-  public static void main(String[] args) {
-    HelloAnimation app = new HelloAnimation();
-    app.start();
-  }
 
-  @Override
-  public void simpleInitApp() {
-    bulletAppState = new BulletAppState();
-    stateManager.attach(bulletAppState);
-    //bulletAppState.setDebugEnabled(true);
-   
-    viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-    //flyCam.setMoveSpeed(100);
+    private Node player;
+    
+    private Material mat_terrain;
 
-    assetManager.registerLocator("town.zip", ZipLocator.class);
-    sceneModel = assetManager.loadModel("main.scene");
-    sceneModel.setLocalScale(2f);
-   
-    
-    player = (Node) assetManager.loadModel("Models/animasi/animasi.j3o");
-    player.setLocalScale(5f);
-    player.setLocalTranslation(-20f, 0, 0);
-    CapsuleCollisionShape capsule = new CapsuleCollisionShape(3f, 4f);
-    character = new CharacterControl(capsule, 0.05f);
-    
-    character.setJumpSpeed(20f);
-    player.addControl(character);
-    character.setPhysicsLocation(new Vector3f(-20f, 2.3f, 0));
-    rootNode.attachChild(player);
-    
-    CollisionShape sceneShape = CollisionShapeFactory.createMeshShape(sceneModel);
-    landscape = new RigidBodyControl(sceneShape, 0);
-    sceneModel.addControl(landscape);
-    
-    control = player.getChild("Dragon 2").getControl(AnimControl.class);
-    control.addListener(this);
-    channel = control.createChannel();
-    channel.setAnim("Run");
-    animationChannel = control.createChannel();
-    getPhysicsSpace().add(character);
-    
-    rootNode.attachChild(sceneModel);
-    bulletAppState.getPhysicsSpace().add(landscape);
-    bulletAppState.getPhysicsSpace().add(player);
-    
-    character.setJumpSpeed(12);
-    character.setFallSpeed(40);
-    character.setGravity(20);
-    
-       this.flyCam.setMoveSpeed(100f);
-        initMaterial();
-        initTerrain();
-   //    this.getCamera().setLocation(new Vector3f(0, 200, 0));
-   //    this.getCamera().lookAt(new Vector3f(0,0,0), Vector3f.UNIT_Y);
-   //     this.viewPort.setBackgroundColor(new ColorRGBA(0.7f, 0.8f, 1f, 1f));
-   //    initLight();
+    private int score; // nampung scorenyaaa
 
-    setupCamera();
-    setUpLight();
-    initKeys();
-    //createWall();
-    //setupChaseCamera();
+    private int highScore; //nampung highscore nya
+
+    private CharacterControl charaControl, character;
+    private RigidBodyControl obstacleControl, obstacleAirControl, terrainControl;
+
+    private BitmapFont defaultFont; // font yang dipake
+
+    private AnimChannel channel;
+    private AnimControl control;
+    private AnimChannel animationChannel;
     
-     // Create model
-        
-//        Box box = new Box(3, 3, 3);
-//        Geometry geom = new Geometry("box", box);
-//        geom.setMaterial(assetManager.loadMaterial("Textures/Terrain/BrickWall/BrickWall.j3m"));
-        Node model = new Node("model");
-//        model.attachChild(geom);
+     private float grassScale = 64;
+    /*
+      attribut buat nanti wadah munculin textnya 
+    fpsScore : score sementara 
+    highSCore : buat nampung high scorenya
+    pressStart : buat panduan  klik start , sama reset game
+     */
+    private BitmapText fpsScoreText, pressStart, fpsHighScoreText;
 
-        Box child = new Box(3, 3, 3);
-        Geometry childGeom = new Geometry("box", child);
-        childGeom.setMaterial(assetManager.loadMaterial("Textures/Terrain/BrickWall/BrickWall.j3m"));
-        Node childModel = new Node("childmodel");
-        childModel.setLocalTranslation(0, 3, (float) (Math.random()*10+90));
-        childModel.attachChild(childGeom);
-        model.attachChild(childModel);
-        
-        model.attachChild(terrain);
-        
-        //animation parameters
-        float animTime = 5;
-        int fps = 25;
-        float totalXLength = 40;
-        
-        //calculating frames
-        int totalFrames = (int) (fps * animTime);
-        float dT = animTime / totalFrames, t = 0;
-        float dX = totalXLength / totalFrames, x = 0;
-        float[] times = new float[totalFrames];
-        Vector3f[] translations = new Vector3f[totalFrames];
-        Quaternion[] rotations = new Quaternion[totalFrames];
-        Vector3f[] scales = new Vector3f[totalFrames];
-		for (int i = 0; i < totalFrames; ++i) {
-        	times[i] = t;
-        	t += dT;
-        	translations[i] = new Vector3f(0, 0, -x);
-        	x += 5*dX;
-        	rotations[i] = Quaternion.IDENTITY;
-        	scales[i] = Vector3f.UNIT_XYZ;
-        }
-        SpatialTrack spatialTrack = new SpatialTrack(times, translations, rotations, scales);
-        
-        //creating the animation
-        Animation spatialAnimation = new Animation("anim", animTime);
-        spatialAnimation.setTracks(new SpatialTrack[] { spatialTrack });
-        
-        //create spatial animation control
-        AnimControl control = new AnimControl();
-        HashMap<String, Animation> animations = new HashMap<String, Animation>();
-        animations.put("anim", spatialAnimation);
-        control.setAnimations(animations);
-        model.addControl(control);
+    // boolean buat nge toggle gamenya start
+    private boolean starting = false;
 
-        rootNode.attachChild(model);
-        
-        //run animation
-        control.createChannel().setAnim("anim");
-            
-    
-  }
-  
-  private void setUpLight() {
-    // We add light so we see the scene
-    AmbientLight al = new AmbientLight();
-    al.setColor(ColorRGBA.White.mult(1.3f));
-    rootNode.addLight(al);
+    private BulletAppState bas;
 
-    DirectionalLight dl = new DirectionalLight();
-    dl.setColor(ColorRGBA.White);
-    dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
-    rootNode.addLight(dl);
-  }
-
-  public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
-    if (walking) {
-      channel.setAnim("Run");
-      channel.setLoopMode(LoopMode.Loop);
-      channel.setSpeed(2.5f);
+    public static void main(String[] args) {
+        TestCol app = new TestCol();
+        app.start();
     }
-  }
-
-  public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
-    // unused
-  }
-
-  /** Custom Keybinding: Map named actions to inputs. */
-  private void initKeys() {
-    inputManager.addMapping("CharLeft", new KeyTrigger(KeyInput.KEY_J));
-    inputManager.addMapping("CharRight", new KeyTrigger(KeyInput.KEY_L));
-    inputManager.addMapping("CharForward", new KeyTrigger(KeyInput.KEY_I));
-    inputManager.addMapping("CharBackward", new KeyTrigger(KeyInput.KEY_K));
-    inputManager.addMapping("CharJump", new KeyTrigger(KeyInput.KEY_SPACE));
-    inputManager.addMapping("CharAttack", new KeyTrigger(KeyInput.KEY_B));
-    inputManager.addListener(this, "CharLeft", "CharRight");
-    inputManager.addListener(this, "CharForward", "CharBackward");
-    inputManager.addListener(this, "CharJump", "CharAttack");
-  }
-  
- 
-    public void onAction (String binding, boolean value, float tpf) {
-      if (binding.equals("CharLeft")) {
-            if (value) {
-                left = true;
-            } else {
-                left = false;
-            }
-        } else if (binding.equals("CharRight")) {
-            if (value) {
-                right = true;
-            } else {
-                right = false;
-            }
-        } else if (binding.equals("CharUp")) {
-            if (value) {
-                up = true;
-            } else {
-                up = false;
-            }
-        } else if (binding.equals("CharDown")) {
-            if (value) {
-                down = true;
-            } else {
-                down = false;
-            }
-        } else if (binding.equals("CharJump")) {
-            character.jump();
-//            channel.setAnim("pull");
-            walking = false;
-            System.out.println(character.getPhysicsLocation());
-        }
-    }
-
-  
-   public void simpleUpdate(float tpf) {
-//        Vector3f camDir = cam.getDirection().clone();
-//        Vector3f camLeft = cam.getLeft().clone();
-//        camDir.y = 0;
-//        camLeft.y = 0;
-//        camDir.normalizeLocal();
-//        camLeft.normalizeLocal();
-//        walkDirection.set(0, 0, 0);
-//
-//        if (left)  walkDirection.addLocal(camLeft);
-//        if (right) walkDirection.addLocal(camLeft.negate());
-//        if (up) walkDirection.addLocal(camDir);
-//        if (down) walkDirection.addLocal(camDir.negate());
-//
-//        if (!character.onGround()) { // use !character.isOnGround() if the character is a BetterCharacterControl type.
-//        airTime += tpf;
-//        } else {
-//        airTime = 0;
-//        }
-//
-//  if (walkDirection.lengthSquared() == 0) { //Use lengthSquared() (No need for an extra sqrt())
-//      if (!"stand".equals(animationChannel.getAnimationName())) {
-//        animationChannel.setAnim("stand", 1f);
-//      }
-//  } else {
-//      character.setViewDirection(walkDirection);
-//      if (airTime > .3f) {
-//        if (!"stand".equals(animationChannel.getAnimationName())) {
-//          animationChannel.setAnim("stand");
-//        }
-//        }    else if (!"Walk".equals(animationChannel.getAnimationName())) {
-//             animationChannel.setAnim("Walk", 0.7f);
-//            }
-//        }
-//
-//        walkDirection.multLocal(25f).multLocal(tpf);// The use of the first multLocal here is to control the rate of movement multiplier for character walk speed. The second one is to make sure the character walks the same speed no matter what the frame rate is.
-//        character.setWalkDirection(walkDirection); // T
-        if (left) sceneModel.move (-7*tpf, 0, 0);
-        if (right) sceneModel.move (7*tpf, 0, 0);
-        if (left) terrain.move (-7*tpf, 0, 0);
-        if (right) terrain.move (7*tpf, 0, 0);
-        
-        sceneModel.move(0, 0, -20*tpf);
-        //terrain.move(0, 0, -20*tpf);
-       // if (this.terrain.getLocalTranslation().z < -30)
-        //{
-        //    this.terrain.setLocalTranslation(0, -25, 0);
-        //}
-        
-        if (character.getPhysicsLocation().y < 5.440){
-        walking = true;
-        }
-        
-    }
-   
-    private PhysicsSpace getPhysicsSpace() {
-        return bulletAppState.getPhysicsSpace();
-    }
-   
-    private void setupChaseCamera() {
-        flyCam.setEnabled(false);
-        chaseCam = new ChaseCamera(cam, player, inputManager);
-        chaseCam.setSmoothMotion(true);
-    }
-   
-    private void setupCamera(){
-        cam.setLocation(new Vector3f(-0.55333f, 26.017147f, -26.443226f));
-        cam.setRotation(new Quaternion(0.22046068f, -0.019695744f, 0.0044526435f, 0.9751868f));
-
-    }
+    
+    
 
     @Override
-    public void collision(PhysicsCollisionEvent event) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void simpleInitApp() {
+        //Setting camera
+        flyCam.setMoveSpeed(100);
+        cam.setLocation(new Vector3f(-0.5828292f, 10.728814f, -64.55383f));
+        cam.setRotation(new Quaternion(0.28176963f, -0.005618209f, 0.0016497344f, 0.9594642f)); 
+
+   // CameraGame camSetUp = new CameraGame(cam,flyCam);
+
+        // Setting bullet app state
+        bas = new BulletAppState();
+        //bas.setDebugEnabled(true);
+        stateManager.attach(bas);
+
+        // dismissing fps counter and stat 
+        setDisplayFps(false);
+        setDisplayStatView(false);
+
+        //initialization score , high score and start / reset state
+        defaultFont = assetManager.loadFont("Interface/Fonts/Default.fnt");
+        pressStart = new BitmapText(defaultFont, false);
+        fpsScoreText = new BitmapText(defaultFont, false);
+        fpsHighScoreText = new BitmapText(defaultFont, false);
+        loadText(fpsScoreText, "Current score : 0", defaultFont, 0, 3, 10);
+        loadText(pressStart, "Press v to Start ", defaultFont, 0, 5, 10);
+        loadText(fpsHighScoreText, "HighScore : 0 ", defaultFont, 0, 7, 9);
+
+        //attaching all the object into rootNode
+        rootNode.attachChild(makeFloor());
+        rootNode.attachChild(makeChara());
+        rootNode.attachChild(makeObstacleDarat());
+        rootNode.attachChild(makeObstacleUdara());
+
+        //  initialization key method
+        initKeys();
+
+        //intialize score and highScore to 0 
+        highScore = 0;
+        score = 0;
+        
+            Node model = new Node("model");
+            model.attachChild(landscape);
+
+            //animation parameters
+            float animTime = 5;
+            int fps = 25;
+            float totalXLength = 90;
+
+            //calculating frames
+            int totalFrames = (int) (fps * animTime);
+            float dT = animTime / totalFrames, t = 0;
+            float dX = totalXLength / totalFrames, x = 0;
+            float[] times = new float[totalFrames];
+            Vector3f[] translations = new Vector3f[totalFrames];
+            Quaternion[] rotations = new Quaternion[totalFrames];
+            Vector3f[] scales = new Vector3f[totalFrames];
+            for (int i = 0; i < totalFrames; ++i) {
+                times[i] = t;
+                t += dT;
+                translations[i] = new Vector3f(0, 0, -x);
+                x += dX;
+                rotations[i] = Quaternion.IDENTITY;
+                scales[i] = Vector3f.UNIT_XYZ;
+            }
+            SpatialTrack spatialTrack = new SpatialTrack(times, translations, rotations, scales);
+
+            //creating the animation
+            Animation spatialAnimation = new Animation("anim", animTime);
+            spatialAnimation.setTracks(new SpatialTrack[]{spatialTrack});
+
+            //create spatial animation control
+            AnimControl control = new AnimControl();
+            HashMap<String, Animation> animations = new HashMap<String, Animation>();
+            animations.put("anim", spatialAnimation);
+            control.setAnimations(animations);
+            model.addControl(control);
+
+            rootNode.attachChild(model);
+            //run animation
+            control.createChannel().setAnim("anim");
+
+    }
+
+    /*
+     Custom method to add mapping name , key input and add those to the listener 
+    
+     */
+    private void initKeys() {
+        // You can map one or several inputs to one named action
+        inputManager.addMapping("Jump", new KeyTrigger(KeyInput.KEY_SPACE));
+        inputManager.addMapping("Print", new KeyTrigger(KeyInput.KEY_P));
+        inputManager.addMapping("Left", new KeyTrigger(KeyInput.KEY_J));
+        inputManager.addMapping("Right", new KeyTrigger(KeyInput.KEY_L));
+        inputManager.addMapping("Reset", new KeyTrigger(KeyInput.KEY_G));
+
+        inputManager.addMapping("Start", new KeyTrigger(KeyInput.KEY_V));
+
+        // Add the names to the action listener.
+        inputManager.addListener(this, "Jump", "Start", "Print", "Reset"); // add it into action listener
+        inputManager.addListener(this, "Left", "Right"); // add it into analog listener 
+
+    }
+
+    /*
+        Custom method to create custom Box
+        1 create box
+        2 create geometry and add the box
+        3 set the box location
+        4 set material
+        5 setting material color
+        6 add material into geometry
+        
+        7 create the collision shape and scale it as big as the geometry using getWorldScale
+        8 Create characterControl and add the collision shape
+        9 add the character control into the geometry
+        10  set the jumpspeed , fallspeed , and gravity
+        11 add the character control into the physicsSpace
+        12 return geomtetry 
+     */
+    protected Node makeChara() {
+//        Box b = new Box(1, 1, 1);
+//        chara = new Geometry("Character", b);
+//        chara.setLocalTranslation(0.0f, -2.8000004f, -40.61673f);
+//        BoxCollisionShape box = new BoxCollisionShape(chara.getWorldScale());
+
+        player = (Node) assetManager.loadModel("Models/TOLONGFINAL/TOLONGFINAL.j3o");
+        player.setLocalScale(0.8f);
+        player.setLocalTranslation(0, 0, -50f);
+        //    BoundingVolume bb = (BoundingVolume)player.getWorldBound();
+        CapsuleCollisionShape capsule = new CapsuleCollisionShape(3f, 4f);
+
+        character = new CharacterControl(capsule, 0.35f);
+//        character.setPhysicsLocation(new Vector3f(0, 0, 0));
+//        charaControl = new CharacterControl(box, speed);
+
+//        chara.addControl(charaControl);
+        player.addControl(character);
+//  charaControl.setJumpSpeed(30);
+//        charaControl.setFallSpeed(100);
+//        charaControl.setGravity(80);
+        SkeletonControl skeletonControl = player.getChild("Dragon 2").getControl (SkeletonControl.class);
+        skeletonControl.setHardwareSkinningPreferred(false);
+
+        character.setJumpSpeed(12);
+        character.setFallSpeed(40);
+        character.setGravity(20);
+
+//        bas.getPhysicsSpace().add(charaControl);
+        bas.getPhysicsSpace().add(character);
+        
+
+        // We add light so we see the scene
+        AmbientLight al = new AmbientLight();
+        al.setColor(ColorRGBA.White.mult(1.3f));
+        rootNode.addLight(al);
+
+        DirectionalLight dl = new DirectionalLight();
+        dl.setColor(ColorRGBA.White);
+        dl.setDirection(new Vector3f(2.8f, -2.8f, -2.8f).normalizeLocal());
+        rootNode.addLight(dl);
+
+        control = player.getChild("Dragon 2").getControl(AnimControl.class);
+        control.addListener(this);
+        channel = control.createChannel();
+        channel.setAnim("Run");
+        animationChannel = control.createChannel();
+        bas.getPhysicsSpace().add(character);
+        
+
+        return player;
+    }
+
+    /**
+     * Method buat bikin obstaclenya collision shapenya gue bikin tipe
+     * boxcollisionshape biar sesuai kotaknya parameternya kan vector3f ,jadi
+     * gue ambil v3nya si geometrynya biar ukuran collision shape nya sama
+     * geometry nya sesuai
+     *
+     * pokonya konsep kasih physic itu 1. bikin collision shape 2. bikin rigid
+     * body control (karena terrain jadi pake rigid body bukan character
+     * control) trus parameternya ( parameter 1 : collision shape nya yang
+     * dibikn di no 1 , parameter 2 : massa nya (massa 0 : statis contohnya
+     * floor/ terrain kalo yang character , obstacle massa nya jangan 0) 3. si
+     * geometry / node / spatial add control si rigid bodynya 4. masukin si
+     * rigid bodynya ke bullet app state(bas)
+     *
+     * @return
+     */
+    protected Spatial makeObstacleDarat() {
+//        Box b = new Box(1, 1, 1);
+//        obstacle = new Geometry("Obstacle", b);
+//        obstacle.setLocalTranslation(0.0f, -2.8000004f, 40.61673f);
+        
+        tank = assetManager.loadModel("Models/Boat/boat.j3o");
+        tank.scale(1f);
+        tank.rotate(0, -3.14f, 0);
+         
+        Material mat1 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        tank.setMaterial(mat1);
+        
+        Texture pattern = this.assetManager.loadTexture("Textures/dipo.jpg");
+        pattern.setWrap(Texture.WrapMode.Repeat);
+        mat1.setTexture("DiffuseMap", pattern);
+        mat1.setBoolean("UseMaterialColors",true);
+        mat1.setColor("Diffuse",ColorRGBA.White);
+        mat1.setColor("Specular",ColorRGBA.White);
+        mat1.setFloat("Shininess", 128f);  // [0,128]
+         
+        BoxCollisionShape box = new BoxCollisionShape(new Vector3f (1.7f,1.5f,4.2f));
+        obstacleControl = new RigidBodyControl(box, 3.0f);
+        tank.addControl(obstacleControl);
+        bas.getPhysicsSpace().add(obstacleControl);
+        return tank;
     }
     
-       public void initMaterial() {
+     protected Spatial makeObstacleUdara() {
+//        Box b = new Box(1, 1, 1);
+//        obstacle = new Geometry("Obstacle", b);
+//        rocket.setLocalTranslation(0.0f, 0.8000004f, 40.61673f);
+        
+
+        rocket = assetManager.loadModel("Models/raven/raven.j3o");
+        rocket.scale(2);
+        rocket.setLocalTranslation(0, 4f, -20f);
+
+        Material mat1 = new Material(assetManager, "Common/MatDefs/Light/Lighting.j3md");
+        rocket.setMaterial(mat1);
+        
+        Texture pattern = this.assetManager.loadTexture("Textures/dipo.jpg");
+        pattern.setWrap(Texture.WrapMode.Repeat);
+        mat1.setTexture("DiffuseMap", pattern);
+        mat1.setBoolean("UseMaterialColors",true);
+        mat1.setColor("Diffuse",ColorRGBA.White);
+        mat1.setColor("Specular",ColorRGBA.White);
+        mat1.setFloat("Shininess", 128f);  // [0,128]
+         
+        BoxCollisionShape box = new BoxCollisionShape(new Vector3f (0.5f,0.5f,2));
+        obstacleAirControl = new RigidBodyControl(box, 0.0f);
+        rocket.addControl(obstacleAirControl);
+        bas.getPhysicsSpace().add(obstacleAirControl);
+        return rocket;
+    }
+
+    /*
+    ini methode buat generate posisi 3 lane nya
+        kanan : -6.0915997f tengah : 2.0915997f kiri : 7.0915997f
+     nanti pas di simple update pas box nya z nya udah -100 gue bakal setphysic location buat balikin si box
+    nah di method ini , gue generate posisi x nya nanti masukin ke parameter x nya si set physic location
+     */
+    public float obsDaratPositionGenerator() {
+        Random rand = new Random();
+        float kiri = 7.0915997f;
+        float tengah = 0.0f;
+        float kanan = -6.0915997f;
+        int num = 1 + rand.nextInt(4);
+        if (num == 1) {
+            return kiri;
+        } else if (num == 2) {
+            return kanan;
+        } else {
+            return tengah;
+        }
+    }
+
+    public void initMaterial() {
         // TERRAIN TEXTURE material
         this.mat_terrain = new Material(this.assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
 
@@ -358,48 +361,207 @@ public class HelloAnimation extends SimpleApplication
         grass.setWrap(Texture.WrapMode.Repeat);
         this.mat_terrain.setTexture("region1ColorMap", grass);
         this.mat_terrain.setVector3("region1", new Vector3f(-10, 0, this.grassScale));
-
-        // DIRT texture
-        Texture dirt = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
-        dirt.setWrap(Texture.WrapMode.Repeat);
-        this.mat_terrain.setTexture("region2ColorMap", dirt);
-        this.mat_terrain.setVector3("region2", new Vector3f(0, 900, this.dirtScale));
-
-        // ROCK texture
-        //Texture rock = this.assetManager.loadTexture("Textures/Terrain/Rock2/rock.jpg");
-        Texture building = this.assetManager.loadTexture("Textures/Terrain/splat/mountains512.png");
-        building.setWrap(Texture.WrapMode.Repeat);
         
-        this.mat_terrain.setTexture("slopeColorMap", building);
         this.mat_terrain.setFloat("slopeTileFactor", 32);
 
         this.mat_terrain.setFloat("terrainSize", 513);
     }
-
-    private void initLight() {
-        DirectionalLight light = new DirectionalLight();
-        light.setDirection((new Vector3f(-0.5f, -1f, -0.5f)).normalize());
-        rootNode.addLight(light);
-    }
-
-    private void initTerrain() {
-        this.terrain = new TerrainGrid("terrain", 65, 257, new ImageTileLoader(assetManager, new Namer() {
-
-            public String getName(int x, int y) {
-               //return "Interface/Scenes/TerrainMountains/terrain_" + x + "_" + y + ".png";
-                return "Textures/heightmap.png";
-            }
-        }));
-
-        this.terrain.setMaterial(mat_terrain);
-        this.terrain.setLocalTranslation(0, 0, -20);
-        this.terrain.setLocalScale(0.2f, 1.5f, 6f);
-        this.rootNode.attachChild(this.terrain);
-
-        TerrainLodControl control = new TerrainGridLodControl(this.terrain, getCamera());
-        control.setLodCalculator( new DistanceLodCalculator(65, 2.7f) ); // patch size, and a multiplier
-        this.terrain.addControl(control);
-    }
     
-       
+    /**
+     * Method buat bikin floornya collision shapenya gue bikin tipe
+     * boxcollisionshape biar sesuai kotaknya parameternya kan vector3f ,jadi
+     * gue ambil v3nya si geometrynya biar ukuran collision shape nya sama
+     * geometry nya sesuai
+     *
+     * pokonya konsep kasih physic itu 1. bikin collision shape 2. bikin rigid
+     * body control (karena terrain jadi pake rigid body bukan character
+     * control) trus parameternya ( parameter 1 : collision shape nya yang
+     * dibikn di no 1 , parameter 2 : massa nya (massa 0 : statis contohnya
+     * floor/ terrain kalo yang character , obstacle massa nya jangan 0) 3. si
+     * geometry / node / spatial add control si rigid bodynya 4. masukin si
+     * rigid bodynya ke bullet app state(bas)
+     *
+     * @return
+     */
+    protected Geometry makeFloor() {
+        
+        Box b = new Box(10, .2f, 180);
+        Vector3f v3 = new Vector3f(10, .2f, 200);
+        landscape = new Geometry("the Floor", b);
+        landscape.setLocalTranslation(0, -4, -5);
+        landscape.setLocalScale(1f, 1.5f, 6f);
+        Material mat1 = new Material(assetManager, "Common/MatDefs/Terrain/HeightBasedTerrain.j3md");
+        landscape.setMaterial(mat1);
+        
+        Texture grass = this.assetManager.loadTexture("Textures/Terrain/splat/dirt.jpg");
+        grass.setWrap(Texture.WrapMode.Repeat);
+        mat1.setTexture("region1ColorMap", grass);
+        mat1.setVector3("region1", new Vector3f(-10, 0, this.grassScale));
+        mat1.setFloat("slopeTileFactor", 32);
+        mat1.setFloat("terrainSize", 513);
+        
+        BoxCollisionShape box = new BoxCollisionShape(v3); // 1.
+        terrainControl = new RigidBodyControl(box, 0.0f);  // 2.
+        landscape.addControl(terrainControl); // 3.
+        bas.getPhysicsSpace().add(terrainControl); //4
+        return landscape;
+    }
+
+    /*
+     * 
+     * @param name
+     * @param isPressed
+     * @param tpf
+    
+        override method interface action listener 
+    print :  itu buat ngeprint posisi si character itu cuma buat test doang 
+    
+    start : dia bakal ngetoggle attribut boolean starting
+    
+    reset : buat ngereset posisi box karakter yang udah kalah , sama ngereset score , reset posisi obstacle
+     sama ngetoggle attribut starting jadi false lagi seperti pas awal baru di run programnya
+    
+     */
+    @Override
+    public void onAction(String name, boolean isPressed, float tpf) {
+        if (starting) {
+            if (name.equals("Print") && !isPressed) {
+                Vector3f obj = charaControl.getPhysicsLocation();
+                System.out.println(obj.x + "f ," + obj.y + "f ," + obj.z + "f");
+            }
+            if (name.equals("Jump") && !isPressed) {
+                character.jump();
+            }
+        }
+        if (name.equals("Start") && !isPressed) {
+            starting = !starting;
+            System.out.println("ok");
+            obstacleControl.setMass(0.0f);
+            pressStart.setText("");
+        }
+        if (name.equals("Reset")) {
+            score = 0;
+            obstacleControl.setPhysicsLocation(new Vector3f(0.0f, -2.8000004f, 40.61673f));
+
+            character.setPhysicsLocation(new Vector3f(0, 0, -50f));
+
+            loadText(fpsScoreText, "Current score : 0", defaultFont, 0, 3, 10);
+            loadText(pressStart, "Press v to Start ", defaultFont, 0, 5, 10);
+
+        }
+    }
+
+    @Override
+    /**
+     *
+     */
+    public void simpleUpdate(float tpf) {
+        /*
+         nah if pertama tuh tadi gamenya ga bakal mulai sebelum player klik v buat start 
+         kalo belom di toggle boolean nya ga bakal mulai simple updatenya
+         */
+
+        if (starting) {
+
+            /*
+             ini buat ngejalanin obstacle musuh ke arah karakter 
+             INGAT ! kalo jalanin obstacle yang udah dikasih physics jangan pake setlocal translation 
+             tapi pake setPhysics location supaya collision shape nya juga gerak 
+             */
+            Vector3f obsPos = obstacleControl.getPhysicsLocation();
+            obstacleControl.setPhysicsLocation(obsPos.set(obsPos.x, obsPos.y, obsPos.z - tpf * 30));
+            Vector3f obsPos2 = obstacleAirControl.getPhysicsLocation();
+            obstacleAirControl.setPhysicsLocation(obsPos.set(obsPos2.x, obsPos2.y, obsPos2.z - tpf * 15));// 2
+            landscape.move(0, 0, -7 * tpf);
+            
+
+            /**
+             * ini buat ngecek kalo obstacle posisinya udah dibelakang kamera
+             * dibalikin ke depan lagi nah cuman buat ngerandom posisi lane nya
+             * gue pas ngeset x nya pake method obsDaratPositionGenerator
+             */
+            if (obsPos.z < -100) {  //Reset obstacle
+                obstacleControl.setPhysicsLocation(new Vector3f(obsDaratPositionGenerator(), -2.8000004f, 40.61673f));
+                obstacleAirControl.setPhysicsLocation(new Vector3f(obsDaratPositionGenerator(), 4.8000004f, 40.61673f));
+            }
+
+            /*
+             BACA - BACA - BACA ! 
+             ini gue jelasin konsep state kalah nya 
+            
+             jadi kalo obstacle jalan terus menuju gue kan otomatis karakter gue nabrak , jadi gue konsepnya
+             kalo karakter gue kedorong dikit aja terhadap znya maka gue pastiin kalah atau si y nya udah - 3 itu kalo jatoh kiri kanan
+             
+            nah kalo kalah si boolean starting tadi yang nge toggle semuanya gue bikin false lagi biar selesai game nya
+             */
+            Vector3f charaPos = character.getPhysicsLocation();
+            //nabrak                   // jatoh
+            if (charaPos.z < -60.62f || charaPos.y < -3.0f) {
+                starting = !starting;
+                System.out.println("LOSE !");
+                pressStart.setText("You Lose , press G to Reset ! ");
+                if (score >= highScore) {
+                    highScore = score;
+                    fpsHighScoreText.setText("High Score : " + highScore);
+                }
+
+            }
+
+            score++; // nge counter scorenya 
+            System.out.println("score : " + score);
+
+            // abis di counter di set ke wadah scorenya secara continously
+            fpsScoreText.setText("Current score: " + score);
+
+        }
+
+    }
+
+    /*
+     ini override analoglistener buat kiri kanan
+     */
+    @Override
+    public void onAnalog(String name, float value, float tpf) {
+        if (starting) {
+            if (name.equals("Left")) {
+                Vector3f obsPos = character.getPhysicsLocation();
+                character.setPhysicsLocation(obsPos.set(obsPos.x + tpf * 10, obsPos.y, obsPos.z));
+            }
+            if (name.equals("Right")) {
+                Vector3f obsPos = character.getPhysicsLocation();
+                character.setPhysicsLocation(obsPos.set(obsPos.x - tpf * 10, obsPos.y, obsPos.z));
+            }
+        }
+    }
+
+    /**
+     * Sets up a BitmapText to be displayed
+     *
+     * @param txt the Bitmap Text
+     * @param text the
+     * @param font the font of the text
+     * @param x
+     * @param y
+     * @param z
+     */
+    private void loadText(BitmapText txt, String text, BitmapFont font, float x, float y, float z) {
+        txt.setSize(font.getCharSet().getRenderedSize());
+        txt.setLocalTranslation(txt.getLineWidth() * x, txt.getLineHeight() * y, z);
+        txt.setText(text);
+        guiNode.attachChild(txt);
+    }
+
+    @Override
+    public void onAnimCycleDone(AnimControl control, AnimChannel channel, String animName) {
+
+        channel.setAnim("Run");
+        channel.setLoopMode(LoopMode.Loop);
+        channel.setSpeed(0.8f);
+
+    }
+
+    @Override
+    public void onAnimChange(AnimControl control, AnimChannel channel, String animName) {
+    }
+
 }
