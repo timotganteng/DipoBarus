@@ -1,0 +1,12 @@
+Nama Kelompok - Muhammad Dipo Putra Wandara 2016730091
+			  - Teuku Hashrul 2016730067
+		      - Timothy Lawrence 2016730064
+			  - Gabriel Panji Lazuardi 2016730068
+			  - Antonius Susanto 		201673
+			  
+Sinopsis game :
+Game ini merupakan type game endless running, yang dimana pemeran utama nya naga, dan ada 2 rintangan, dimana yang 1 di darat yaitu kapal, dan ada yang di udara burung. Game ini akan terus berlangsung selama kita menghindari ke 2 rintangan tersebut. Jika kita mengenai salah satu dari 2 rintangan tersebut maka kita akan di mintai apakah kita akan melanjut game tersebut atau tidak.
+
+
+
+LINK GITHUB : https://github.com/timotganteng/DipoBarus
